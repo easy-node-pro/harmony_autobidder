@@ -2,23 +2,23 @@
 
 ## About
 
-Harmony AutoBidder automatically manages BLS keys for your validator
-to ensure you stay within a slot range while you sleep. It polls
-for validator information regularly and decides to either remove or
-add bls keys to stay within a slot range. The polling interval
-starts slow and contracts as the end of the current epoch approaches.
-
-If you've benefited from using this program please consider donating or delegating ONEs to RoboValidator at 
-https://staking.harmony.one/validators/mainnet/one1x8fhymx4xsygy4dju9ea9vhs3vqg0u3ht0nz74 so we can continue
-to improve this software.
+This is a version of Harmony's Autobidder with updates by Patrick @ EasyNode.pro
 
 ## Setup
+### Clone Repo
+After logging into the system you'll run autobidder on, clone the repo and set it to our production branch:
+```
+git clone https://github.com/easy-node-pro/harmony_autobidder.git
+cd harmony_autobidder
+git checkout easy-prod
+```
+
 ### Install requirements
 ```
 $ pip3 install -r requirements.txt
 ```
 
-### Download the hmy client if you haven't already
+### Download the hmy client if you're not running autobidder on a validator
 ```
 $ cd ~/
 $ mkdir ~/harmony
@@ -30,12 +30,16 @@ See `config.py` if you'd like to modify the path settings. Also make sure `$HOME
 in your system path.
 
 ### Create your passphrase.txt file
+Autobidder needs the wallet password on this server to change keys.
+
 ```
 $ echo 'passphrase' > ~/harmony/passphrase.txt
 $ chmod og-rw ~/harmony/passphrase.txt
 ```
 
 ### Copy BLS .key and .pass files into .hmy/allkeys
+Copy all of your keys for all shards into the allkeys folder:
+
 ```
 $ mkdir ~/harmony/.hmy/allkeys
 $ cp ~/harmony/.hmy/blskeys/*.* ~/harmony/.hmy/allkeys
@@ -70,17 +74,24 @@ git update-index --skip-worktree bls_keys.py
 
 ### vStatsBot Integration By Fortune Validator
 Add your vStatsBot token acquired by running /token command on the bot to the autobidder config.py file. 
-Set the two variables to True or False ( VSTATS_ALERT_REMOVE_KEY, VSTATS_ALERT_OUT_OF_ELECTION)
+Set the two variables to True or False (VSTATS_ALERT_REMOVE_KEY, VSTATS_ALERT_OUT_OF_ELECTION)
 
-### Create a tmux session
+### Start program with target.py
+You can copy target.py to your home directory or launch it anywhere with:
+
 ```
-$ tmux new-session -s autobidder
+python3 ~/harmony_autobidder/target.py 500
 ```
 
-### Start the autobidding service
+The script will launch your autobidder in a tmux session named autobidder. It will check for one already running on startup, stop it, and start a new one with your new slot.  
+
+To exit a running tmux session and leave it active, send the commands `ctrl+b d` to exit back to your normal terminal. Verify your autobidder is still running with `tmux ls` and check for the autobidder session.  
+
+To reconnect to a running session, send the command `tmux attach -t autobidder`  
+
+### Monitoring the autobidding tmux session
 ```
-$ python3 autobid.py
-...
+''''
 384: kaparnos (1019000)
 385: FNHarmonyOS (1000000)
 386: BBIT (545000)
@@ -100,6 +111,12 @@ If we increase the bid by removing a key the slots will be: 28
 ....
 ```
 The bot will poll for validator information every several seconds and output the state again if anything changes.
+
+### termius startup snipped
+This snippet can be used in termius or on it's own to ask for a slot and start/restart the autobidder session with your new target:
+```
+echo Enter your target slot number: && read slot_number && cd ~/harmony_autobidder/ && python3 target.py $slot_number
+```
 
 ## Script options
 ```
